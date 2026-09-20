@@ -1,8 +1,8 @@
 {
   "id": "tesouro-direto",
-  "name": "tesouro-direto",
+  "name": "Tesouro Direto",
   "version": "1.0.0",
-  "description": "Track the values of Brazil's Tesouro Direto",
+  "description": "Daily rates and prices for Tesouro Direto bonds (Brazilian Treasury)",
   "author": "Danilo",
   "main": "dist/addon.js",
   "sdkVersion": "3.8.0",
@@ -15,8 +15,8 @@
         {
           "id": "tesouro-direto",
           "route": "tesouro-direto",
-          "label": "tesouro-direto",
-          "icon": "squares-four",
+          "label": "Tesouro Direto",
+          "icon": "bank",
           "order": 100
         }
       ]
@@ -32,7 +32,36 @@
     "react-dom": "^19.2.0",
     "recharts": "^3.7.0"
   },
-  "permissions": [],
-  "keywords": ["wealthfolio", "addon"],
+  "network": {
+    "allowedHosts": ["api.tesourodiretomonitor.com.br"]
+  },
+  "permissions": [
+    {
+      "category": "network",
+      "functions": ["request"],
+      "purpose": "Fetch daily Tesouro Direto bond rates and prices from api.tesourodiretomonitor.com.br"
+    },
+    {
+      "category": "accounts",
+      "functions": ["getAll"],
+      "purpose": "List accounts to find securities held in your portfolio"
+    },
+    {
+      "category": "portfolio",
+      "functions": ["getHoldings"],
+      "purpose": "Read held securities to match Tesouro Direto bonds by name"
+    },
+    {
+      "category": "assets",
+      "functions": ["getProfile", "updateProfile"],
+      "purpose": "Check and configure the market data provider of your Tesouro Direto securities"
+    },
+    {
+      "category": "market-data",
+      "functions": ["sync"],
+      "purpose": "Trigger the first quote sync after connecting a security"
+    }
+  ],
+  "keywords": ["wealthfolio", "addon", "tesouro-direto", "brazil"],
   "license": "MIT"
 }
