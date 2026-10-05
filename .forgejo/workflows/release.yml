@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: docker
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.33.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: ".node-version"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bundle addon
+        run: pnpm bundle
+
+      - name: Check package version matches tag
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$version" != "${GITHUB_REF_NAME}" ]; then
+            echo "package.json version ($version) does not match tag (${GITHUB_REF_NAME})" >&2
+            exit 1
+          fi
+
+      - name: Publish release with addon zip
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          api="${{ github.server_url }}/api/v1/repos/${{ github.repository }}"
+          auth="Authorization: token ${TOKEN}"
+          tag="${GITHUB_REF_NAME}"
+
+          # Reuse the release when the tag already has one (re-runs).
+          id=$(curl -sf -H "${auth}" "${api}/releases/tags/${tag}" \
+            | jq -r '.id' 2>/dev/null || true)
+          if [ -z "${id}" ] || [ "${id}" = "null" ]; then
+            id=$(curl -sf -H "${auth}" -H "Content-Type: application/json" \
+              -d "{\"tag_name\":\"${tag}\",\"name\":\"${tag}\"}" \
+              "${api}/releases" | jq -r '.id')
+          fi
+
+          zip=$(ls dist/*.zip)
+          curl -sf -H "${auth}" -H "Content-Type: application/zip" \
+            --data-binary "@${zip}" \
+            "${api}/releases/${id}/assets?name=$(basename "${zip}")" >/dev/null
+          echo "Published $(basename "${zip}") to release ${tag}"
