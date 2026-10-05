@@ -1,7 +1,7 @@
 {
   "id": "tesouro-direto",
   "name": "Tesouro Direto",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Daily rates and prices for Tesouro Direto bonds (Brazilian Treasury)",
   "author": "Danilo",
   "main": "dist/addon.js",
@@ -9,7 +9,11 @@
   "minWealthfolioVersion": "3.8.0",
   "enabled": true,
   "contributes": {
-    "routes": [{ "id": "tesouro-direto" }],
+    "routes": [
+      {
+        "id": "tesouro-direto"
+      }
+    ],
     "links": {
       "sidebar": [
         {
@@ -33,35 +37,53 @@
     "recharts": "^3.7.0"
   },
   "network": {
-    "allowedHosts": ["api.tesourodiretomonitor.com.br"]
+    "allowedHosts": [
+      "api.tesourodiretomonitor.com.br"
+    ]
   },
   "permissions": [
     {
       "category": "network",
-      "functions": ["request"],
+      "functions": [
+        "request"
+      ],
       "purpose": "Fetch daily Tesouro Direto bond rates and prices from api.tesourodiretomonitor.com.br"
     },
     {
       "category": "accounts",
-      "functions": ["getAll"],
+      "functions": [
+        "getAll"
+      ],
       "purpose": "List accounts to find securities held in your portfolio"
     },
     {
       "category": "portfolio",
-      "functions": ["getHoldings"],
+      "functions": [
+        "getHoldings"
+      ],
       "purpose": "Read held securities to match Tesouro Direto bonds by name"
     },
     {
       "category": "assets",
-      "functions": ["getProfile", "updateProfile"],
+      "functions": [
+        "getProfile",
+        "updateProfile"
+      ],
       "purpose": "Check and configure the market data provider of your Tesouro Direto securities"
     },
     {
       "category": "market-data",
-      "functions": ["sync"],
+      "functions": [
+        "sync"
+      ],
       "purpose": "Trigger the first quote sync after connecting a security"
     }
   ],
-  "keywords": ["wealthfolio", "addon", "tesouro-direto", "brazil"],
+  "keywords": [
+    "wealthfolio",
+    "addon",
+    "tesouro-direto",
+    "brazil"
+  ],
   "license": "MIT"
 }
