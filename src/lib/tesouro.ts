@@ -27,7 +27,7 @@ const BOND_TYPE_ORDER = [
 ];
 
 /** Raw quote shape returned by the API. */
-interface RawQuote {
+export interface RawQuote {
   id: number;
   nome: string;
   tipo: string;
@@ -45,7 +45,7 @@ interface RawQuote {
 }
 
 /** Raw response envelope returned by the API. */
-interface RawResponse {
+export interface RawResponse {
   success: boolean;
   count: number;
   data: RawQuote[];
