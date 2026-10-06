@@ -18,14 +18,27 @@ to the provider with the exact API id.
 ## One-time setup: the custom provider
 
 The addon cannot create market data providers, so create it once in
-**Settings → Market Data → Custom Providers → Add Provider**:
+**Settings → Market Data → Custom Providers → Add Provider** using the
+**Both** mode (a dated series plus a latest endpoint — older host versions
+require a `latest` source and do not fall back to the series):
 
-- Mode: **Dated series** (newest row = latest)
+**Historical source** (dated series):
+
 - Format: **JSON API**
-- URL: `https://api.tesourodiretomonitor.com.br/api/titulos/{SYMBOL}/historico?dias=3650`
+- URL: `https://api.tesourodiretomonitor.com.br/api/titulos/{SYMBOL}/historico?dias=0`
+  (`dias=0` returns the full available series)
 - Price path: `$.data.historico[*].puVenda`
 - As of path: `$.data.historico[*].coletadoEm`
-- Provider name: `Tesouro Direto Monitor` (code `tesouro-direto-monitor`)
+
+**Latest source** (current-day quotes):
+
+- Format: **JSON API**
+- URL: `https://api.tesourodiretomonitor.com.br/api/taxas/atuais`
+- Price path: `$.data[?(@.id == {SYMBOL})].puVenda` (no quotes: the id is a
+  JSON number)
+- As of path: `$.data[?(@.id == {SYMBOL})].dataAtualizacao`
+
+Provider name: `Tesouro Direto Monitor` (code `tesouro-direto-monitor`).
 
 ## Connecting a security
 
