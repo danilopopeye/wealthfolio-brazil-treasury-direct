@@ -72,12 +72,12 @@ describe('matchSecuritiesByQuotes', () => {
 
 describe('buildProviderConfig', () => {
   it('wires the security to the custom provider with the api id', () => {
-    const config = buildProviderConfig(31);
+    const config = buildProviderConfig('tesouro-direto', 31);
 
     expect(config.preferred_provider).toBe('CUSTOM_SCRAPER');
-    expect(config.custom_provider_code).toBe(TD_PROVIDER_CODE);
+    expect(config.custom_provider_code).toBe('tesouro-direto');
     expect(config.overrides).toEqual({
-      [`CUSTOM:${TD_PROVIDER_CODE}`]: { type: 'equity_symbol', symbol: '31' },
+      'CUSTOM:tesouro-direto': { type: 'equity_symbol', symbol: '31' },
     });
   });
 
@@ -86,7 +86,7 @@ describe('buildProviderConfig', () => {
       preferred_provider: 'YAHOO',
       overrides: { YAHOO: { type: 'equity_symbol', symbol: 'XYZ' } },
     };
-    const config = buildProviderConfig(15, existing);
+    const config = buildProviderConfig(TD_PROVIDER_CODE, 15, existing);
 
     expect((config.overrides as Record<string, unknown>).YAHOO).toEqual({
       type: 'equity_symbol',
@@ -100,11 +100,11 @@ describe('isWiredToProvider', () => {
   const profile = (providerConfig: unknown) => ({ providerConfig }) as never;
 
   it('requires our provider override to consider a profile wired', () => {
-    expect(isWiredToProvider(profile(buildProviderConfig(31)))).toBe(true);
+    expect(isWiredToProvider(profile(buildProviderConfig('tdm', 31)), 'tdm')).toBe(true);
     expect(
-      isWiredToProvider(profile({ preferred_provider: 'CUSTOM_SCRAPER', custom_provider_code: 'other' })),
+      isWiredToProvider(profile({ preferred_provider: 'CUSTOM_SCRAPER', custom_provider_code: 'other' }), 'tdm'),
     ).toBe(false);
-    expect(isWiredToProvider(profile(null))).toBe(false);
-    expect(isWiredToProvider(undefined)).toBe(false);
+    expect(isWiredToProvider(profile(null), 'tdm')).toBe(false);
+    expect(isWiredToProvider(undefined, 'tdm')).toBe(false);
   });
 });

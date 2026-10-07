@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-09-20
+
+### Changed
+- Provider renamed to just "Tesouro Direto" in the docs and setup guidance;
+  providers created under the legacy "Tesouro Direto Monitor" name keep
+  working
+
+### Fixed
+- The wiring now uses the provider code discovered from
+  market.getProviders() instead of a hardcoded code, so installs where the
+  provider auto-generates a different code connect correctly
+
 ## [1.2.0] - 2026-09-20
 
 ### Added

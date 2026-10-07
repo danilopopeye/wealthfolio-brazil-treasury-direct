@@ -7,6 +7,7 @@ import { Alert, AlertDescription, Button, Card, CardContent, Skeleton } from '@w
 import { BondQuotesTable } from '../components/BondQuotesTable';
 import { useTdCatalog } from '../hooks/useTdCatalog';
 import { useTdProvider } from '../hooks/useTdProvider';
+import { TD_PROVIDER_CODE } from '../lib/catalog';
 
 /** Warning shown when the custom provider the catalog wires to is missing. */
 function ProviderMissingAlert() {
@@ -18,8 +19,8 @@ function ProviderMissingAlert() {
           grava a configuração, mas o preço só sincroniza depois que o provider existir:
         </p>
         <p className="text-xs opacity-90">
-          Settings → Market Data → Custom Providers → Add Provider, nome exato{' '}
-          <code>Tesouro Direto Monitor</code>, modo <strong>Both</strong>, com os endpoints{' '}
+          Settings → Market Data → Custom Providers → Add Provider, nome{' '}
+          <code>Tesouro Direto</code>, modo <strong>Both</strong>, com os endpoints{' '}
           <code>/api/titulos/&#123;SYMBOL&#125;/historico?dias=0</code> (série) e{' '}
           <code>/api/taxas/atuais</code> (latest) — campos completos no README do addon.
         </p>
@@ -45,14 +46,15 @@ function LoadingSkeleton() {
  * the Tesouro Direto Monitor custom provider with one click.
  */
 export function TesouroDiretoPage({ ctx }: { ctx: AddonContext }) {
+  const providerQuery = useTdProvider(ctx);
+  const providerCode = providerQuery.data?.id ?? TD_PROVIDER_CODE;
   const {
     quotesQuery,
     instrumentsQuery,
     links,
     byBondName,
     connectMutation,
-  } = useTdCatalog(ctx);
-  const providerQuery = useTdProvider(ctx);
+  } = useTdCatalog(ctx, providerCode);
   const queryClient = useQueryClient();
   const { data, isLoading, isError, error, refetch, isFetching, dataUpdatedAt } = quotesQuery;
 

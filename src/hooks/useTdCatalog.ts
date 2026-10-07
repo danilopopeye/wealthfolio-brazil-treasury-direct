@@ -13,8 +13,12 @@ import { useTesouroQuotes } from './useTesouroQuotes';
  * Catalog state: current quotes cross-referenced with the user's held
  * securities (matched by name), including wiring status and the connect
  * mutation that links a security to the Tesouro Direto custom provider.
+ *
+ * The provider code is resolved by the caller from market.getProviders()
+ * (see useTdProvider) so the wiring targets the provider that actually
+ * exists, whichever code it was created with.
  */
-export function useTdCatalog(ctx: AddonContext) {
+export function useTdCatalog(ctx: AddonContext, providerCode: string) {
   const queryClient = useQueryClient();
   const quotesQuery = useTesouroQuotes(ctx);
 
@@ -52,7 +56,7 @@ export function useTdCatalog(ctx: AddonContext) {
 
   const wiredAssetIds = new Set(
     [...(profilesQuery.data ?? new Map())]
-      .filter(([, profile]) => isWiredToProvider(profile))
+      .filter(([, profile]) => isWiredToProvider(profile, providerCode))
       .map(([assetId]) => assetId)
   );
 
@@ -62,7 +66,7 @@ export function useTdCatalog(ctx: AddonContext) {
 
   const connectMutation = useMutation({
     mutationFn: ({ assetId, apiId }: { assetId: string; apiId: number }) =>
-      connectSecurity(ctx, assetId, apiId),
+      connectSecurity(ctx, assetId, apiId, providerCode),
     onSuccess: async (_, { assetId }) => {
       await queryClient.invalidateQueries({
         queryKey: ['tesouro-direto', 'profiles'],

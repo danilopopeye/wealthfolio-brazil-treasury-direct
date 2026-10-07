@@ -38,9 +38,10 @@ require a `latest` source and do not fall back to the series):
   JSON number)
 - As of path: `$.data[?(@.id == {SYMBOL})].dataAtualizacao`
 
-Provider name: `Tesouro Direto Monitor` — **keep this exact name**: the addon
-references the provider by its auto-generated code `tesouro-direto-monitor`,
-and a different name produces a different code, breaking the wiring.
+Provider name: `Tesouro Direto` — **keep this exact name**: the addon finds the
+provider by name and wires securities to the code it auto-generates. A
+provider named `Tesouro Direto Monitor` (pre-rename installs) keeps working
+too.
 
 ## Connecting a security
 
@@ -66,10 +67,10 @@ symbol mapping override (the numeric API id) must both be set on the
 security. Setting only the override in the edit sheet leaves the security
 unassigned. The addon's Conectar button always sets all of them together.
 
-**Wired but sync fails with a provider error** — check the provider code.
-The addon hardcodes `tesouro-direto-monitor`; if the provider was created
-under a different name (hence a different code), the lookup fails. Rename
-the provider or re-create it with the exact name above.
+**Wired but sync fails with a provider error** — check the provider name.
+The addon matches `Tesouro Direto` (and the legacy `Tesouro Direto
+Monitor`); a provider created under any other name is not found. Rename
+the provider or re-create it with a supported name.
 
 ## Data source
 
