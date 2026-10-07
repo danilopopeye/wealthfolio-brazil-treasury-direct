@@ -6,6 +6,27 @@ import type { AddonContext } from '@wealthfolio/addon-sdk';
 import { Alert, AlertDescription, Button, Card, CardContent, Skeleton } from '@wealthfolio/ui';
 import { BondQuotesTable } from '../components/BondQuotesTable';
 import { useTdCatalog } from '../hooks/useTdCatalog';
+import { useTdProvider } from '../hooks/useTdProvider';
+
+/** Warning shown when the custom provider the catalog wires to is missing. */
+function ProviderMissingAlert() {
+  return (
+    <Alert variant="destructive">
+      <AlertDescription className="space-y-2">
+        <p>
+          <strong>Provider "Tesouro Direto Monitor" não encontrado.</strong> O botão Conectar
+          grava a configuração, mas o preço só sincroniza depois que o provider existir:
+        </p>
+        <p className="text-xs opacity-90">
+          Settings → Market Data → Custom Providers → Add Provider, nome exato{' '}
+          <code>Tesouro Direto Monitor</code>, modo <strong>Both</strong>, com os endpoints{' '}
+          <code>/api/titulos/&#123;SYMBOL&#125;/historico?dias=0</code> (série) e{' '}
+          <code>/api/taxas/atuais</code> (latest) — campos completos no README do addon.
+        </p>
+      </AlertDescription>
+    </Alert>
+  );
+}
 
 function LoadingSkeleton() {
   return (
@@ -31,6 +52,7 @@ export function TesouroDiretoPage({ ctx }: { ctx: AddonContext }) {
     byBondName,
     connectMutation,
   } = useTdCatalog(ctx);
+  const providerQuery = useTdProvider(ctx);
   const queryClient = useQueryClient();
   const { data, isLoading, isError, error, refetch, isFetching, dataUpdatedAt } = quotesQuery;
 
@@ -89,6 +111,10 @@ export function TesouroDiretoPage({ ctx }: { ctx: AddonContext }) {
           {isFetching ? 'Atualizando...' : 'Atualizar'}
         </Button>
       </div>
+
+      {providerQuery.data === undefined && !providerQuery.isLoading ? (
+        <ProviderMissingAlert />
+      ) : null}
 
       {instrumentsQuery.isError && (
         <Alert>

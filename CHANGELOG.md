@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-20
+
+### Added
+- Provider guard on the quotes page: when the Tesouro Direto Monitor custom
+  provider is missing, the page shows a warning with the setup steps instead
+  of letting wired securities fail their price sync silently
+
 ## [1.1.1] - 2026-09-20
 
 ### Fixed
