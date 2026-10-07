@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-10-07
+
+### Fixed
+- False "sem cotações recentes" warning: the quote history endpoint returns
+  newest-first, and the staleness check was reading the oldest quote as the
+  latest. The newest quote is now computed explicitly regardless of order
+- The provider code is learned only from quotes inside the freshness window,
+  ignoring stale history left by renamed providers
+
 ## [1.2.2] - 2026-10-07
 
 ### Fixed

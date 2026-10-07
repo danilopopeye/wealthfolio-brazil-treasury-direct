@@ -3,9 +3,11 @@ import {
   buildProviderConfig,
   isQuoteStale,
   isWiredToProvider,
+  latestQuoteTimestamp,
   matchSecuritiesByQuotes,
   normalizeName,
   providerCodeFromDataSource,
+  recentQuoteDataSources,
   resolveProviderCode,
   TD_PROVIDER_CODE,
 } from '../catalog';
@@ -152,5 +154,40 @@ describe('isQuoteStale', () => {
 
   it('flags quotes older than six days', () => {
     expect(isQuoteStale('2026-09-10T12:00:00Z', now)).toBe(true);
+  });
+});
+
+describe('latestQuoteTimestamp', () => {
+  const q = (timestamp: string) => ({ timestamp });
+
+  it('finds the newest quote regardless of ordering', () => {
+    // The history endpoint returns newest-first; make sure both orders work.
+    expect(latestQuoteTimestamp([q('2026-09-18T12:00:00Z'), q('2026-02-02T12:00:00Z')])).toBe(
+      '2026-09-18T12:00:00Z'
+    );
+    expect(latestQuoteTimestamp([q('2026-02-02T12:00:00Z'), q('2026-09-18T12:00:00Z')])).toBe(
+      '2026-09-18T12:00:00Z'
+    );
+  });
+
+  it('returns undefined for an empty history', () => {
+    expect(latestQuoteTimestamp([])).toBeUndefined();
+  });
+});
+
+describe('recentQuoteDataSources', () => {
+  const now = new Date('2026-09-20T12:00:00Z');
+  const q = (timestamp: string, dataSource: string) => ({ timestamp, dataSource });
+
+  it('keeps only sources with fresh quotes', () => {
+    expect(
+      recentQuoteDataSources(
+        [
+          q('2026-09-18T12:00:00Z', 'CUSTOM_SCRAPER:tesouro-direto'),
+          q('2026-02-02T12:00:00Z', 'CUSTOM_SCRAPER:renamed-away'),
+        ],
+        now
+      ),
+    ).toEqual(['CUSTOM_SCRAPER:tesouro-direto']);
   });
 });

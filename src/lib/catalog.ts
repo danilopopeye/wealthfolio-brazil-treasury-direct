@@ -32,6 +32,36 @@ export function resolveProviderCode(dataSources: string[]): string {
   return TD_PROVIDER_CODE;
 }
 
+/** How recent a quote must be to count as fresh (business days + long weekend). */
+export const QUOTE_FRESHNESS_MS = 6 * 24 * 60 * 60 * 1000;
+
+/**
+ * The newest quote timestamp of a collection, regardless of ordering
+ * (the history endpoint returns newest-first).
+ */
+export function latestQuoteTimestamp(quotes: Array<{ timestamp: string }>): string | undefined {
+  return quotes.reduce<string | undefined>(
+    (latest, quote) => (latest === undefined || quote.timestamp > latest ? quote.timestamp : latest),
+    undefined
+  );
+}
+
+/**
+ * Data sources of quotes inside the freshness window — the codes delivering
+ * prices *today*, ignoring stale history from renamed providers.
+ */
+export function recentQuoteDataSources(
+  quotes: Array<{ timestamp: string; dataSource: string }>,
+  now = new Date()
+): string[] {
+  return quotes
+    .filter((quote) => {
+      const ts = new Date(quote.timestamp).getTime();
+      return !Number.isNaN(ts) && now.getTime() - ts <= QUOTE_FRESHNESS_MS;
+    })
+    .map((quote) => quote.dataSource);
+}
+
 /**
  * A wired security is stale when it has no quotes at all or its newest quote
  * is older than a long weekend (Tesouro Direto publishes on business days).
@@ -40,8 +70,7 @@ export function isQuoteStale(latestTimestamp: string | undefined, now = new Date
   if (!latestTimestamp) return true;
   const latest = new Date(latestTimestamp).getTime();
   if (Number.isNaN(latest)) return true;
-  const maxAgeMs = 6 * 24 * 60 * 60 * 1000;
-  return now.getTime() - latest > maxAgeMs;
+  return now.getTime() - latest > QUOTE_FRESHNESS_MS;
 }
 
 /** Builds the providerConfig that wires a security to our custom provider. */

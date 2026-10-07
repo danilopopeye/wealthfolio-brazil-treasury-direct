@@ -6,7 +6,9 @@ import {
   fetchHeldInstruments,
   isQuoteStale,
   isWiredToProvider,
+  latestQuoteTimestamp,
   matchSecuritiesByQuotes,
+  recentQuoteDataSources,
   resolveProviderCode,
   LEGACY_PROVIDER_CODE,
   TD_PROVIDER_CODE,
@@ -58,8 +60,8 @@ export function useTdCatalog(ctx: AddonContext) {
       return entries.map(({ assetId, profile, history }) => ({
         assetId,
         profile,
-        latestTimestamp: history.length > 0 ? history[history.length - 1].timestamp : undefined,
-        dataSources: history.map((quote) => quote.dataSource),
+        latestTimestamp: latestQuoteTimestamp(history),
+        dataSources: recentQuoteDataSources(history),
       }));
     },
     enabled: matches.length > 0,
