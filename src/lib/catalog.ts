@@ -2,11 +2,47 @@ import type { AddonContext, Asset } from '@wealthfolio/addon-sdk';
 import type { TdSecurityMatch, TesouroQuote } from '../types';
 
 /**
- * Legacy/default custom provider code (created as "Tesouro Direto Monitor").
- * The actual code is resolved at runtime from market.getProviders(); this
- * constant is the fallback when discovery has no answer yet.
+ * Custom provider code derived from the documented provider name
+ * ("Tesouro Direto" → code "tesouro-direto"). Used as the default when no
+ * live code can be learned from existing quotes.
  */
-export const TD_PROVIDER_CODE = 'tesouro-direto-monitor';
+export const TD_PROVIDER_CODE = 'tesouro-direto';
+
+/**
+ * Code from installs made before the provider rename; still accepted when
+ * reading wiring status and when learning the live code from quotes.
+ */
+export const LEGACY_PROVIDER_CODE = 'tesouro-direto-monitor';
+
+/** Extracts the custom provider code from a quote dataSource. */
+export function providerCodeFromDataSource(dataSource: string): string | undefined {
+  return /^CUSTOM_SCRAPER:(.+)$/.exec(dataSource)?.[1];
+}
+
+/**
+ * Resolves the provider code to wire new securities with: prefer the code
+ * actually delivering quotes today (learned from any quote's dataSource),
+ * falling back to the documented default.
+ */
+export function resolveProviderCode(dataSources: string[]): string {
+  for (const source of dataSources) {
+    const code = providerCodeFromDataSource(source);
+    if (code) return code;
+  }
+  return TD_PROVIDER_CODE;
+}
+
+/**
+ * A wired security is stale when it has no quotes at all or its newest quote
+ * is older than a long weekend (Tesouro Direto publishes on business days).
+ */
+export function isQuoteStale(latestTimestamp: string | undefined, now = new Date()): boolean {
+  if (!latestTimestamp) return true;
+  const latest = new Date(latestTimestamp).getTime();
+  if (Number.isNaN(latest)) return true;
+  const maxAgeMs = 6 * 24 * 60 * 60 * 1000;
+  return now.getTime() - latest > maxAgeMs;
+}
 
 /** Builds the providerConfig that wires a security to our custom provider. */
 export function buildProviderConfig(
@@ -26,15 +62,15 @@ export function buildProviderConfig(
   return config;
 }
 
-/** Whether a security profile already maps to our custom provider. */
+/** Whether a security profile already maps to one of our provider codes. */
 export function isWiredToProvider(
   profile: Asset | undefined | null,
-  providerCode: string
+  providerCodes: string[]
 ): boolean {
   const config = profile?.providerConfig as Record<string, unknown> | null | undefined;
   if (!config) return false;
   const overrides = config.overrides as Record<string, unknown> | undefined;
-  return Boolean(overrides?.[`CUSTOM:${providerCode}`]);
+  return providerCodes.some((code) => Boolean(overrides?.[`CUSTOM:${code}`]));
 }
 
 /** Case/whitespace-insensitive name normalization for matching. */

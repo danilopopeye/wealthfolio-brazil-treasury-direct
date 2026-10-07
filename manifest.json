@@ -1,7 +1,7 @@
 {
   "id": "tesouro-direto",
   "name": "Tesouro Direto",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Daily rates and prices for Tesouro Direto bonds (Brazilian Treasury)",
   "author": "Danilo",
   "main": "dist/addon.js",
@@ -74,10 +74,16 @@
     {
       "category": "market-data",
       "functions": [
-        "getProviders",
         "sync"
       ],
-      "purpose": "Check that the Tesouro Direto Monitor custom provider exists and trigger the first quote sync after connecting a security"
+      "purpose": "Trigger the first quote sync after connecting a security"
+    },
+    {
+      "category": "quotes",
+      "functions": [
+        "getHistory"
+      ],
+      "purpose": "Check whether connected securities are actually receiving Tesouro Direto quotes"
     }
   ],
   "keywords": [

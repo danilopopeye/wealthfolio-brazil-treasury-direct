@@ -6,23 +6,23 @@ import type { AddonContext } from '@wealthfolio/addon-sdk';
 import { Alert, AlertDescription, Button, Card, CardContent, Skeleton } from '@wealthfolio/ui';
 import { BondQuotesTable } from '../components/BondQuotesTable';
 import { useTdCatalog } from '../hooks/useTdCatalog';
-import { useTdProvider } from '../hooks/useTdProvider';
-import { TD_PROVIDER_CODE } from '../lib/catalog';
 
-/** Warning shown when the custom provider the catalog wires to is missing. */
-function ProviderMissingAlert() {
+/** Warning shown when wired securities stopped receiving quotes. */
+function SyncStalledAlert({ count }: { count: number }) {
+  const plural = count > 1 ? 's' : '';
   return (
     <Alert variant="destructive">
       <AlertDescription className="space-y-2">
         <p>
-          <strong>Provider "Tesouro Direto Monitor" não encontrado.</strong> O botão Conectar
-          grava a configuração, mas o preço só sincroniza depois que o provider existir:
+          <strong>{count} security{plural} conectada{plural} sem cotações recentes.</strong> O
+          provider pode estar ausente ou desconfigurado:
         </p>
         <p className="text-xs opacity-90">
-          Settings → Market Data → Custom Providers → Add Provider, nome{' '}
-          <code>Tesouro Direto</code>, modo <strong>Both</strong>, com os endpoints{' '}
+          Settings → Market Data → Custom Providers — o provider deve se chamar{' '}
+          <code>Tesouro Direto</code> (code <code>tesouro-direto</code>), no modo{' '}
+          <strong>Both</strong>, com os endpoints{' '}
           <code>/api/titulos/&#123;SYMBOL&#125;/historico?dias=0</code> (série) e{' '}
-          <code>/api/taxas/atuais</code> (latest) — campos completos no README do addon.
+          <code>/api/taxas/atuais</code> (latest). Campos completos no README do addon.
         </p>
       </AlertDescription>
     </Alert>
@@ -46,15 +46,14 @@ function LoadingSkeleton() {
  * the Tesouro Direto Monitor custom provider with one click.
  */
 export function TesouroDiretoPage({ ctx }: { ctx: AddonContext }) {
-  const providerQuery = useTdProvider(ctx);
-  const providerCode = providerQuery.data?.id ?? TD_PROVIDER_CODE;
   const {
     quotesQuery,
     instrumentsQuery,
     links,
     byBondName,
     connectMutation,
-  } = useTdCatalog(ctx, providerCode);
+    staleWiredCount,
+  } = useTdCatalog(ctx);
   const queryClient = useQueryClient();
   const { data, isLoading, isError, error, refetch, isFetching, dataUpdatedAt } = quotesQuery;
 
@@ -114,9 +113,7 @@ export function TesouroDiretoPage({ ctx }: { ctx: AddonContext }) {
         </Button>
       </div>
 
-      {providerQuery.data === undefined && !providerQuery.isLoading ? (
-        <ProviderMissingAlert />
-      ) : null}
+      {staleWiredCount > 0 ? <SyncStalledAlert count={staleWiredCount} /> : null}
 
       {instrumentsQuery.isError && (
         <Alert>

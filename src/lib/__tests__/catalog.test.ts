@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildProviderConfig,
+  isQuoteStale,
   isWiredToProvider,
   matchSecuritiesByQuotes,
   normalizeName,
+  providerCodeFromDataSource,
+  resolveProviderCode,
   TD_PROVIDER_CODE,
 } from '../catalog';
 import type { TesouroQuote } from '../../types';
@@ -100,11 +103,54 @@ describe('isWiredToProvider', () => {
   const profile = (providerConfig: unknown) => ({ providerConfig }) as never;
 
   it('requires our provider override to consider a profile wired', () => {
-    expect(isWiredToProvider(profile(buildProviderConfig('tdm', 31)), 'tdm')).toBe(true);
+    expect(isWiredToProvider(profile(buildProviderConfig('tdm', 31)), ['tdm', TD_PROVIDER_CODE])).toBe(true);
     expect(
-      isWiredToProvider(profile({ preferred_provider: 'CUSTOM_SCRAPER', custom_provider_code: 'other' }), 'tdm'),
+      isWiredToProvider(profile({ preferred_provider: 'CUSTOM_SCRAPER', custom_provider_code: 'other' }), ['tdm']),
     ).toBe(false);
-    expect(isWiredToProvider(profile(null), 'tdm')).toBe(false);
-    expect(isWiredToProvider(undefined, 'tdm')).toBe(false);
+    expect(isWiredToProvider(profile(null), ['tdm'])).toBe(false);
+    expect(isWiredToProvider(undefined, ['tdm'])).toBe(false);
+  });
+});
+
+describe('providerCodeFromDataSource', () => {
+  it('extracts the code from a custom scraper data source', () => {
+    expect(providerCodeFromDataSource('CUSTOM_SCRAPER:tesouro-direto')).toBe('tesouro-direto');
+    expect(providerCodeFromDataSource('CUSTOM_SCRAPER:tesouro-direto-monitor')).toBe(
+      'tesouro-direto-monitor'
+    );
+  });
+
+  it('returns undefined for other providers', () => {
+    expect(providerCodeFromDataSource('YAHOO')).toBeUndefined();
+    expect(providerCodeFromDataSource('')).toBeUndefined();
+  });
+});
+
+describe('resolveProviderCode', () => {
+  it('prefers the code that is actually delivering quotes', () => {
+    expect(
+      resolveProviderCode(['YAHOO', 'CUSTOM_SCRAPER:tesouro-direto-monitor']),
+    ).toBe('tesouro-direto-monitor');
+  });
+
+  it('falls back to the documented default code', () => {
+    expect(resolveProviderCode([])).toBe('tesouro-direto');
+    expect(resolveProviderCode(['YAHOO'])).toBe('tesouro-direto');
+  });
+});
+
+describe('isQuoteStale', () => {
+  const now = new Date('2026-09-20T12:00:00Z');
+
+  it('treats missing quotes as stale', () => {
+    expect(isQuoteStale(undefined, now)).toBe(true);
+  });
+
+  it('accepts quotes within a long weekend', () => {
+    expect(isQuoteStale('2026-09-18T12:00:00Z', now)).toBe(false);
+  });
+
+  it('flags quotes older than six days', () => {
+    expect(isQuoteStale('2026-09-10T12:00:00Z', now)).toBe(true);
   });
 });

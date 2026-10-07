@@ -1,24 +1,30 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { AddonContext } from '@wealthfolio/addon-sdk';
+import type { AddonContext, Quote } from '@wealthfolio/addon-sdk';
 import type { TdSecurityMatch } from '../types';
 import {
   connectSecurity,
   fetchHeldInstruments,
+  isQuoteStale,
   isWiredToProvider,
   matchSecuritiesByQuotes,
+  resolveProviderCode,
+  LEGACY_PROVIDER_CODE,
+  TD_PROVIDER_CODE,
 } from '../lib/catalog';
 import { useTesouroQuotes } from './useTesouroQuotes';
 
 /**
  * Catalog state: current quotes cross-referenced with the user's held
- * securities (matched by name), including wiring status and the connect
- * mutation that links a security to the Tesouro Direto custom provider.
+ * securities (matched by name), including wiring status, sync health and
+ * the connect mutation that links a security to the Tesouro Direto
+ * custom provider.
  *
- * The provider code is resolved by the caller from market.getProviders()
- * (see useTdProvider) so the wiring targets the provider that actually
- * exists, whichever code it was created with.
+ * The provider code used for wiring is learned from the dataSource of
+ * quotes that are actually syncing (e.g. "CUSTOM_SCRAPER:tesouro-direto"),
+ * falling back to the documented default — custom providers are not listed
+ * by market.getProviders(), so live quotes are the source of truth.
  */
-export function useTdCatalog(ctx: AddonContext, providerCode: string) {
+export function useTdCatalog(ctx: AddonContext) {
   const queryClient = useQueryClient();
   const quotesQuery = useTesouroQuotes(ctx);
 
@@ -31,33 +37,50 @@ export function useTdCatalog(ctx: AddonContext, providerCode: string) {
 
   const instruments = instrumentsQuery.data ?? [];
 
-  // Matched securities (name join) need asset profiles to know wiring status.
+  // Matched securities (name join) need profiles (wiring status) and their
+  // quote history (sync health + live provider code).
   const matches = quotesQuery.data
     ? matchSecuritiesByQuotes(quotesQuery.data.quotes, instruments, new Set())
     : [];
 
-  const profilesQuery = useQuery({
-    queryKey: ['tesouro-direto', 'profiles', matches.map((m) => m.assetId)],
+  const stateQuery = useQuery({
+    queryKey: ['tesouro-direto', 'state', matches.map((m) => m.assetId)],
     queryFn: async () => {
-      const profiles = await Promise.all(
-        matches.map(async (match) => ({
-          assetId: match.assetId,
-          profile: await ctx.api.assets.getProfile(match.assetId),
-        }))
+      const entries = await Promise.all(
+        matches.map(async (match) => {
+          const [profile, history] = await Promise.all([
+            ctx.api.assets.getProfile(match.assetId),
+            ctx.api.quotes.getHistory(match.assetId).catch(() => [] as Quote[]),
+          ]);
+          return { assetId: match.assetId, profile, history };
+        })
       );
-      return new Map(
-        profiles.map(({ assetId, profile }) => [assetId, profile] as const)
-      );
+      return entries.map(({ assetId, profile, history }) => ({
+        assetId,
+        profile,
+        latestTimestamp: history.length > 0 ? history[history.length - 1].timestamp : undefined,
+        dataSources: history.map((quote) => quote.dataSource),
+      }));
     },
     enabled: matches.length > 0,
     staleTime: 30 * 1000,
     refetchOnWindowFocus: true,
   });
 
+  const state = stateQuery.data ?? [];
+  const knownCodes = [LEGACY_PROVIDER_CODE, TD_PROVIDER_CODE];
+  const providerCode = resolveProviderCode(state.flatMap((s) => s.dataSources));
   const wiredAssetIds = new Set(
-    [...(profilesQuery.data ?? new Map())]
-      .filter(([, profile]) => isWiredToProvider(profile, providerCode))
-      .map(([assetId]) => assetId)
+    state
+      .filter((s) => isWiredToProvider(s.profile, [...knownCodes, providerCode]))
+      .map((s) => s.assetId)
+  );
+  // Wired securities whose quotes are missing or stale: the provider is
+  // missing, misconfigured, or the wiring points at the wrong code.
+  const staleWiredAssetIds = new Set(
+    state
+      .filter((s) => wiredAssetIds.has(s.assetId) && isQuoteStale(s.latestTimestamp))
+      .map((s) => s.assetId)
   );
 
   const links: TdSecurityMatch[] = quotesQuery.data
@@ -69,7 +92,7 @@ export function useTdCatalog(ctx: AddonContext, providerCode: string) {
       connectSecurity(ctx, assetId, apiId, providerCode),
     onSuccess: async (_, { assetId }) => {
       await queryClient.invalidateQueries({
-        queryKey: ['tesouro-direto', 'profiles'],
+        queryKey: ['tesouro-direto', 'state'],
       });
       // Give the triggered sync a moment before refreshing quotes.
       setTimeout(() => {
@@ -91,5 +114,7 @@ export function useTdCatalog(ctx: AddonContext, providerCode: string) {
     links,
     byBondName: new Map(links.map((link) => [link.bond.name, link])),
     connectMutation,
+    staleWiredAssetIds,
+    staleWiredCount: staleWiredAssetIds.size,
   };
 }

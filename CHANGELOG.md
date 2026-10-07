@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-10-07
+
+### Fixed
+- Provider guard no longer uses market.getProviders(): it only lists built-in
+  providers, so the warning showed even with the custom provider present.
+  The guard now warns only when a wired security has no recent quotes
+  (missing or older than six days)
+- The provider code used for wiring is learned from the dataSource of quotes
+  that are actually syncing, falling back to the documented
+  tesouro-direto code, so installs running the legacy
+  tesouro-direto-monitor code keep connecting correctly
+
 ## [1.2.1] - 2026-09-20
 
 ### Changed
