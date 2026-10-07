@@ -1,7 +1,7 @@
 {
   "id": "tesouro-direto",
   "name": "Tesouro Direto",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Daily rates and prices for Tesouro Direto bonds (Brazilian Treasury)",
   "author": "Danilo",
   "main": "dist/addon.js",
