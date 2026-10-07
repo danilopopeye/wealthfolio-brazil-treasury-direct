@@ -1,16 +1,24 @@
 import type { AddonContext, Asset } from '@wealthfolio/addon-sdk';
 import type { TdSecurityMatch, TesouroQuote } from '../types';
 
-/** Custom provider id created by the user in Settings → Market Data. */
+/**
+ * Legacy/default custom provider code (created as "Tesouro Direto Monitor").
+ * The actual code is resolved at runtime from market.getProviders(); this
+ * constant is the fallback when discovery has no answer yet.
+ */
 export const TD_PROVIDER_CODE = 'tesouro-direto-monitor';
 
 /** Builds the providerConfig that wires a security to our custom provider. */
-export function buildProviderConfig(apiId: number, existing?: Record<string, unknown> | null) {
+export function buildProviderConfig(
+  providerCode: string,
+  apiId: number,
+  existing?: Record<string, unknown> | null
+) {
   const config: Record<string, unknown> = { ...(existing ?? {}) };
   config.preferred_provider = 'CUSTOM_SCRAPER';
-  config.custom_provider_code = TD_PROVIDER_CODE;
+  config.custom_provider_code = providerCode;
   const overrides = { ...((config.overrides as Record<string, unknown>) ?? {}) };
-  overrides[`CUSTOM:${TD_PROVIDER_CODE}`] = {
+  overrides[`CUSTOM:${providerCode}`] = {
     type: 'equity_symbol',
     symbol: String(apiId),
   };
@@ -19,11 +27,14 @@ export function buildProviderConfig(apiId: number, existing?: Record<string, unk
 }
 
 /** Whether a security profile already maps to our custom provider. */
-export function isWiredToProvider(profile: Asset | undefined | null): boolean {
+export function isWiredToProvider(
+  profile: Asset | undefined | null,
+  providerCode: string
+): boolean {
   const config = profile?.providerConfig as Record<string, unknown> | null | undefined;
   if (!config) return false;
   const overrides = config.overrides as Record<string, unknown> | undefined;
-  return Boolean(overrides?.[`CUSTOM:${TD_PROVIDER_CODE}`]);
+  return Boolean(overrides?.[`CUSTOM:${providerCode}`]);
 }
 
 /** Case/whitespace-insensitive name normalization for matching. */
@@ -104,7 +115,8 @@ export async function fetchHeldInstruments(
 export async function connectSecurity(
   ctx: AddonContext,
   assetId: string,
-  apiId: number
+  apiId: number,
+  providerCode: string
 ): Promise<void> {
   const profile = await ctx.api.assets.getProfile(assetId);
   await ctx.api.assets.updateProfile({
@@ -113,7 +125,7 @@ export async function connectSecurity(
     // it optional — always forward the current value to avoid a 422.
     notes: profile?.notes ?? '',
     quoteMode: 'MARKET',
-    providerConfig: buildProviderConfig(apiId, profile?.providerConfig),
+    providerConfig: buildProviderConfig(providerCode, apiId, profile?.providerConfig),
   });
   await ctx.api.market.sync([assetId], false);
 }
