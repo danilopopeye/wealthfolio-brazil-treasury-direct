@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish addon zip
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10.33.0
+
+      - name: Setup Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: ".node-version"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Test gate before packaging, so tagged releases never ship a broken
+      # addon. The bundle runs its own typecheck, but tests cover the parsing
+      # and matching logic the catalog depends on.
+      - name: Test
+        run: pnpm test
+
+      - name: Check package version matches tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$version" != "$TAG" ]; then
+            echo "package.json version ($version) does not match tag ($TAG)" >&2
+            exit 1
+          fi
+
+      - name: Bundle addon
+        run: pnpm bundle
+
+      # Keep the raw build output out of the release: only the installable
+      # addon zip becomes a downloadable asset.
+      - name: Collect release assets
+        run: |
+          mkdir -p release
+          cp dist/*.zip release/
+
+      - name: Create release and upload zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --generate-notes \
+            release/*.zip
