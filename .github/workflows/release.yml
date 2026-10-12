@@ -55,11 +55,30 @@ jobs:
           mkdir -p release
           cp dist/*.zip release/
 
+      # Release notes come straight from the curated CHANGELOG.md section —
+      # no third-party actions. The guard fails the release when the
+      # section is missing, so a tagged version without changelog never
+      # ships with empty notes.
+      - name: Extract changelog section for this version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="${TAG#v}"
+          awk -v ver="$version" '
+            /^## \[/ { if (flag) exit }
+            $0 ~ "^## \\[" ver "\\]" { flag=1; next }
+            flag { print }
+          ' CHANGELOG.md > release-notes.md
+          test -s release-notes.md || {
+            echo "CHANGELOG.md has no section for [${version}]" >&2
+            exit 1
+          }
+
       - name: Create release and upload zip
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${{ github.ref_name }}" \
             --title "${{ github.ref_name }}" \
-            --generate-notes \
+            --notes-file release-notes.md \
             release/*.zip

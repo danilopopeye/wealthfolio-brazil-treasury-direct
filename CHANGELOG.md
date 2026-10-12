@@ -89,22 +89,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial addon structure and setup
-
-### Security
-
-## [1.0.0] - {{currentDate}}
-
-### Added
-- Initial release of tesouro-direto addon
-- Basic addon functionality and core features
-- Integration with Wealthfolio addon SDK v3.8.0
-- Sidebar navigation integration for easy access
-- Responsive design for all screen sizes
-
-### Features
-- Track the values of Brazil's Tesouro Direto
-- User-friendly interface
-- Compatible with Wealthfolio platform
-
-### Compatibility
-- Requires Wealthfolio 3.8.0 or newer
