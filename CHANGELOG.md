@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-10-12
+
+### Added
+- Release zips now carry a signed SLSA build provenance attestation; verify
+  with `gh attestation verify <zip> --repo danilopopeye/wealthfolio-brazil-treasury-direct`
+
 ## [1.3.0] - 2026-10-07
 
 ### Changed
