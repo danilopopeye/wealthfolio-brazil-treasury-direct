@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-07
+
+### Changed
+- Renamed to wealthfolio-brazil-treasury-direct to match the addon family
+  naming (repo, package, and addon id brazil-treasury-direct, route and
+  query keys included). The market data provider contract is unchanged:
+  keep the provider named "Tesouro Direto" (code tesouro-direto)
+
 ## [1.2.3] - 2026-10-07
 
 ### Fixed

@@ -1,4 +1,4 @@
-# wealthfolio-tesouro-direto
+# wealthfolio-brazil-treasury-direct
 
 Wealthfolio addon that tracks Tesouro Direto (Brazilian Treasury) bonds.
 

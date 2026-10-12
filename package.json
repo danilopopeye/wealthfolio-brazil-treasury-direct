@@ -1,6 +1,6 @@
 {
-  "name": "wealthfolio-tesouro-direto-addon",
-  "version": "1.2.3",
+  "name": "wealthfolio-brazil-treasury-direct-addon",
+  "version": "1.3.0",
   "description": "Track the values of Brazil's Tesouro Direto",
   "type": "module",
   "main": "dist/addon.js",

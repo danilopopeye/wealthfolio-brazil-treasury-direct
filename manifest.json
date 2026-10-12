@@ -1,7 +1,7 @@
 {
-  "id": "tesouro-direto",
+  "id": "brazil-treasury-direct",
   "name": "Tesouro Direto",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "description": "Daily rates and prices for Tesouro Direto bonds (Brazilian Treasury)",
   "author": "Danilo",
   "main": "dist/addon.js",
@@ -11,14 +11,14 @@
   "contributes": {
     "routes": [
       {
-        "id": "tesouro-direto"
+        "id": "brazil-treasury-direct"
       }
     ],
     "links": {
       "sidebar": [
         {
-          "id": "tesouro-direto",
-          "route": "tesouro-direto",
+          "id": "brazil-treasury-direct",
+          "route": "brazil-treasury-direct",
           "label": "Tesouro Direto",
           "icon": "bank",
           "order": 100
@@ -90,6 +90,7 @@
     "wealthfolio",
     "addon",
     "tesouro-direto",
+    "treasury-direct",
     "brazil"
   ],
   "license": "MIT"

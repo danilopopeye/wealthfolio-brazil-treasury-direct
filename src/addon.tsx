@@ -25,8 +25,8 @@ const enable: AddonEnableFunction = (ctx) => {
   // The route `id` MUST match `contributes.routes[].id` in manifest.json.
   // The host derives this root path from the manifest addon id.
   ctx.router.add({
-    id: 'tesouro-direto',
-    path: '/addons/tesouro-direto',
+    id: 'brazil-treasury-direct',
+    path: '/addons/brazil-treasury-direct',
     component: AddonRoute,
   });
 

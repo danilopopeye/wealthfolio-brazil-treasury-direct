@@ -3,7 +3,7 @@ import type { AddonContext } from '@wealthfolio/addon-sdk';
 import type { TesouroQuotes } from '../types';
 import { fetchTesouroQuotes } from '../lib/tesouro';
 
-export const TESOURO_QUOTES_QUERY_KEY = ['tesouro-direto', 'quotes'] as const;
+export const TESOURO_QUOTES_QUERY_KEY = ['brazil-treasury-direct', 'quotes'] as const;
 
 /**
  * Loads the latest Tesouro Direto quotes. The source is updated once per

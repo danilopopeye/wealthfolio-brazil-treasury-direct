@@ -60,7 +60,7 @@ export function TesouroDiretoPage({ ctx }: { ctx: AddonContext }) {
   const refreshAll = () => {
     // The Atualizar button refreshes quotes AND the catalog (profiles may
     // have changed through the host UI while this page was in the background).
-    void queryClient.invalidateQueries({ queryKey: ['tesouro-direto'] });
+    void queryClient.invalidateQueries({ queryKey: ['brazil-treasury-direct'] });
     void refetch();
   };
 

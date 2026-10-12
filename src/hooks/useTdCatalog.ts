@@ -31,7 +31,7 @@ export function useTdCatalog(ctx: AddonContext) {
   const quotesQuery = useTesouroQuotes(ctx);
 
   const instrumentsQuery = useQuery({
-    queryKey: ['tesouro-direto', 'instruments'],
+    queryKey: ['brazil-treasury-direct', 'instruments'],
     queryFn: () => fetchHeldInstruments(ctx),
     staleTime: 30 * 1000,
     refetchOnWindowFocus: true,
@@ -46,7 +46,7 @@ export function useTdCatalog(ctx: AddonContext) {
     : [];
 
   const stateQuery = useQuery({
-    queryKey: ['tesouro-direto', 'state', matches.map((m) => m.assetId)],
+    queryKey: ['brazil-treasury-direct', 'state', matches.map((m) => m.assetId)],
     queryFn: async () => {
       const entries = await Promise.all(
         matches.map(async (match) => {
@@ -94,12 +94,12 @@ export function useTdCatalog(ctx: AddonContext) {
       connectSecurity(ctx, assetId, apiId, providerCode),
     onSuccess: async (_, { assetId }) => {
       await queryClient.invalidateQueries({
-        queryKey: ['tesouro-direto', 'state'],
+        queryKey: ['brazil-treasury-direct', 'state'],
       });
       // Give the triggered sync a moment before refreshing quotes.
       setTimeout(() => {
         void queryClient.invalidateQueries({
-          queryKey: ['tesouro-direto', 'quotes'],
+          queryKey: ['brazil-treasury-direct', 'quotes'],
         });
       }, 3000);
       void assetId;
