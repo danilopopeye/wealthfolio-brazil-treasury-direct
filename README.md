@@ -82,6 +82,8 @@ returns 206 headers but the complete body anyway.
 
 ## Development
 
+Addon development docs: <https://wealthfolio.app/docs/addons/getting-started/>
+
 ```bash
 pnpm install
 pnpm dev:server   # dev server on :3001 (Wealthfolio in addon dev mode discovers it)
