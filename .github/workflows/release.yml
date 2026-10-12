@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   id-token: write # OIDC identity for signing build provenance
+  attestations: write # persist the attestation on the repo
 
 jobs:
   release:
