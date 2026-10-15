@@ -58,5 +58,10 @@
   "bugs": {
     "url": "https://github.com/danilopopeye/wealthfolio-brazil-treasury-direct/issues"
   },
-  "homepage": "https://github.com/danilopopeye/wealthfolio-brazil-treasury-direct#readme"
+  "homepage": "https://github.com/danilopopeye/wealthfolio-brazil-treasury-direct#readme",
+  "pnpm": {
+    "overrides": {
+      "source-map-js": ">=1.2.2"
+    }
+  }
 }
